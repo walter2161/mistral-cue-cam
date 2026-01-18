@@ -58,33 +58,29 @@ const Index = () => {
 
         {/* Camera Preview - Centered at Top */}
         <div className="max-w-4xl mx-auto mb-4">
-          <div className="flex gap-3">
-            {/* Camera Container */}
-            <div className="flex-1 relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-cyan-500/30">
-              <CameraPreview ref={cameraRef} onStreamReady={handleStreamReady} />
-              
-              {/* Translucent overlay filter */}
-              <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-              
-              {script && (
-                <Teleprompter
-                  ref={teleprompterRef}
-                  key={resetKey}
-                  text={script}
-                  speed={speed}
-                  fontSize={fontSize}
-                  position={position}
-                  isPlaying={isPlaying}
-                  mirrorMode={mirrorMode}
-                  onProgressUpdate={handleProgressUpdate}
-                />
-              )}
-            </div>
+          <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-cyan-500/30">
+            <CameraPreview ref={cameraRef} onStreamReady={handleStreamReady} />
 
-            {/* Vertical Scroll Progress Bar - Right Side */}
+            {/* Translucent overlay filter */}
+            <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
             {script && (
-              <div className="flex flex-col items-center gap-2 py-2">
-                <span className="text-xs text-muted-foreground">{Math.round(scrollProgress)}%</span>
+              <Teleprompter
+                ref={teleprompterRef}
+                key={resetKey}
+                text={script}
+                speed={speed}
+                fontSize={fontSize}
+                position={position}
+                isPlaying={isPlaying}
+                mirrorMode={mirrorMode}
+                onProgressUpdate={handleProgressUpdate}
+              />
+            )}
+
+            {/* Vertical Scrollbar - Right side, top -> bottom */}
+            {script && (
+              <div className="absolute right-3 top-3 bottom-3 z-20 flex items-center pointer-events-auto">
                 <Slider
                   value={[scrollProgress]}
                   onValueChange={handleScrollProgressChange}
@@ -92,9 +88,10 @@ const Index = () => {
                   max={100}
                   step={1}
                   orientation="vertical"
-                  className="h-full min-h-[200px]"
+                  inverted
+                  className="h-full"
+                  aria-label="Posição do texto"
                 />
-                <span className="text-xs text-muted-foreground rotate-0">Posição</span>
               </div>
             )}
           </div>
