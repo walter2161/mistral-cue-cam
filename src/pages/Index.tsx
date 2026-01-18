@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Play, Pause, RotateCcw, SkipBack } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipBack, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import CameraPreview, { CameraPreviewRef } from "@/components/CameraPreview";
@@ -27,8 +27,67 @@ const Index = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [aiAssistEnabled, setAiAssistEnabled] = useState(false);
   const [wordStatuses, setWordStatuses] = useState<WordStatus[]>([]);
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const cameraRef = useRef<CameraPreviewRef>(null);
   const teleprompterRef = useRef<SmartTeleprompterRef>(null);
+
+  // Detect chapters - lines starting with #, numbers like "1.", "Capítulo", or all caps lines
+  const getChapterPositions = useCallback(() => {
+    const lines = script.split('\n');
+    const chapters: { index: number; wordIndex: number; title: string }[] = [];
+    let wordCount = 0;
+    
+    lines.forEach((line, lineIndex) => {
+      const trimmed = line.trim();
+      const isChapter = 
+        trimmed.startsWith('#') ||
+        /^(\d+[\.\):]|\[.*\]|capítulo|capitulo|parte|seção|secao)/i.test(trimmed) ||
+        (trimmed.length > 3 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed));
+      
+      if (isChapter && trimmed.length > 0) {
+        chapters.push({
+          index: lineIndex,
+          wordIndex: wordCount,
+          title: trimmed.substring(0, 30)
+        });
+      }
+      wordCount += line.split(/\s+/).filter(w => w.length > 0).length;
+    });
+    
+    return chapters;
+  }, [script]);
+
+  const goToPreviousChapter = useCallback(() => {
+    setIsPlaying(false);
+    const chapters = getChapterPositions();
+    
+    if (chapters.length === 0) {
+      // No chapters, just go to start
+      setResetKey(prev => prev + 1);
+      setScrollProgress(0);
+      setWordStatuses([]);
+      return;
+    }
+
+    // Find current chapter based on word statuses
+    const currentWordIndex = wordStatuses.find(s => s.status === "current")?.index || 0;
+    
+    // Find the chapter we're currently in or past
+    let targetChapterIdx = 0;
+    for (let i = chapters.length - 1; i >= 0; i--) {
+      if (chapters[i].wordIndex < currentWordIndex - 5) {
+        targetChapterIdx = i;
+        break;
+      }
+    }
+
+    // Go to that chapter
+    const targetChapter = chapters[targetChapterIdx];
+    if (targetChapter && teleprompterRef.current) {
+      teleprompterRef.current.scrollToWord(targetChapter.wordIndex);
+      setCurrentChapterIndex(targetChapterIdx);
+    }
+  }, [getChapterPositions, wordStatuses]);
 
   const handleStreamReady = (mediaStream: MediaStream) => {
     setStream(mediaStream);
@@ -148,6 +207,17 @@ const Index = () => {
             >
               <SkipBack className="w-5 h-5" />
               Início
+            </Button>
+            <Button
+              onClick={goToPreviousChapter}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              title="Voltar ao capítulo anterior"
+              disabled={!script.trim()}
+            >
+              <BookOpen className="w-5 h-5" />
+              Capítulo
             </Button>
             <Button
               onClick={togglePlay}
