@@ -17,6 +17,7 @@ interface SmartTeleprompterProps {
   onProgressUpdate?: (progress: number) => void;
   wordStatuses?: WordStatus[];
   aiAssistEnabled?: boolean;
+  onWordClick?: (wordIndex: number) => void;
 }
 
 export interface SmartTeleprompterRef {
@@ -26,7 +27,7 @@ export interface SmartTeleprompterRef {
 }
 
 const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProps>(
-  ({ text, speed, fontSize, position, isPlaying, mirrorMode, onProgressUpdate, wordStatuses: externalWordStatuses, aiAssistEnabled }, ref) => {
+  ({ text, speed, fontSize, position, isPlaying, mirrorMode, onProgressUpdate, wordStatuses: externalWordStatuses, aiAssistEnabled, onWordClick }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLDivElement>(null);
     const controls = useAnimationControls();
@@ -210,8 +211,16 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
                     className += "text-white/70";
                 }
                 
+                const currentWordIndex = wordIndex - 1;
                 return (
-                  <span key={`${lineIndex}-${segIndex}`} className={className}>
+                  <span 
+                    key={`${lineIndex}-${segIndex}`} 
+                    className={`${className} cursor-pointer hover:ring-2 hover:ring-white/50 hover:rounded`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWordClick?.(currentWordIndex);
+                    }}
+                  >
                     {segment}
                   </span>
                 );
@@ -228,7 +237,7 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
     return (
       <div
         ref={containerRef}
-        className={`absolute inset-0 flex flex-col ${positionClasses[position]} overflow-hidden pointer-events-none z-10`}
+        className={`absolute inset-0 flex flex-col ${positionClasses[position]} overflow-hidden z-10`}
       >
         <motion.div
           ref={textRef}

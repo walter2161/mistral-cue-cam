@@ -124,6 +124,15 @@ const Index = () => {
     }
   }, [aiAssistEnabled]);
 
+  const handleWordClick = useCallback((wordIndex: number) => {
+    // Pause playback when clicking to select position
+    setIsPlaying(false);
+    // Scroll to clicked word
+    teleprompterRef.current?.scrollToWord(wordIndex);
+    // Clear word statuses so AI can restart from this point
+    setWordStatuses([]);
+  }, []);
+
   const handleAIControlCommand = useCallback((command: "pause" | "play" | "back" | "forward") => {
     switch (command) {
       case "pause":
@@ -177,6 +186,7 @@ const Index = () => {
                 onProgressUpdate={handleProgressUpdate}
                 wordStatuses={wordStatuses}
                 aiAssistEnabled={aiAssistEnabled}
+                onWordClick={handleWordClick}
               />
             )}
 
