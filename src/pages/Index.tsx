@@ -73,7 +73,10 @@ const Index = () => {
   }, [script]);
 
   const goToPreviousChapter = useCallback(() => {
+    // Pause everything - teleprompter and AI assistant
     setIsPlaying(false);
+    setAiAssistEnabled(false);
+    
     const chapters = getChapterPositions();
     
     if (chapters.length === 0) {
@@ -93,11 +96,14 @@ const Index = () => {
       }
     }
 
-    // Go to that chapter
+    // Go to that chapter with a margin (3 words before the chapter start for reading preparation)
     const targetChapter = chapters[targetChapterIdx];
     if (targetChapter && teleprompterRef.current) {
-      teleprompterRef.current.scrollToWord(targetChapter.wordIndex);
+      const marginWordIndex = Math.max(0, targetChapter.wordIndex - 3);
+      teleprompterRef.current.scrollToWord(marginWordIndex);
       setCurrentChapterIndex(targetChapterIdx);
+      // Clear word statuses so AI can restart fresh from this point
+      setWordStatuses([]);
     }
   }, [getChapterPositions, wordStatuses, resetTeleprompter]);
 
