@@ -73,9 +73,8 @@ const Index = () => {
   }, [script]);
 
   const goToPreviousChapter = useCallback(() => {
-    // Pause everything - teleprompter and AI assistant
+    // Pause playback only (keep AI assistant enabled)
     setIsPlaying(false);
-    setAiAssistEnabled(false);
     
     const chapters = getChapterPositions();
     
