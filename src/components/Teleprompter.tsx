@@ -17,9 +17,9 @@ const Teleprompter = ({ text, speed, fontSize, position, isPlaying, mirrorMode }
   const [scrollPosition, setScrollPosition] = useState(0);
 
   const positionClasses = {
-    top: "justify-start pt-4",
-    center: "justify-center",
-    bottom: "justify-end pb-4",
+    top: "items-start pt-2",
+    center: "items-center",
+    bottom: "items-end pb-4",
   };
 
   useEffect(() => {
@@ -62,15 +62,16 @@ const Teleprompter = ({ text, speed, fontSize, position, isPlaying, mirrorMode }
       <motion.div
         ref={textRef}
         animate={controls}
-        className={`px-4 md:px-8 text-white text-center leading-relaxed ${mirrorMode ? "scale-x-[-1]" : ""}`}
+        className={`w-full px-4 md:px-8 text-white text-center leading-relaxed ${mirrorMode ? "scale-x-[-1]" : ""}`}
         style={{
           fontSize: `${fontSize}px`,
           textShadow: "2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)",
           fontWeight: 600,
+          maxWidth: "100%",
         }}
       >
         {text.split("\n").map((line, index) => (
-          <p key={index} className="mb-4">
+          <p key={index} className="mb-2 mx-auto">
             {line || "\u00A0"}
           </p>
         ))}
