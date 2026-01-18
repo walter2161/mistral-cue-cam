@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, SkipBack } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import CameraPreview, { CameraPreviewRef } from "@/components/CameraPreview";
@@ -139,6 +139,16 @@ const Index = () => {
 
           {/* Play Controls and Recording */}
           <div className="flex flex-wrap justify-center items-center gap-3 mt-3">
+            <Button
+              onClick={resetTeleprompter}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              title="Voltar ao início"
+            >
+              <SkipBack className="w-5 h-5" />
+              Início
+            </Button>
             <Button
               onClick={togglePlay}
               size="lg"
