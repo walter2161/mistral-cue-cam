@@ -74,6 +74,36 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       }
     }, [aiAssistEnabled, isPlaying, currentWordIndex, internalWordStatuses.length, maxScroll]);
 
+    // Auto-scroll to current word when AI assist is enabled
+    useEffect(() => {
+      if (!aiAssistEnabled || !externalWordStatuses?.length) return;
+      
+      // Find the current word index from external statuses
+      const currentIdx = externalWordStatuses.findIndex(ws => ws.status === "current");
+      if (currentIdx === -1) return;
+      
+      const totalWords = externalWordStatuses.length;
+      if (totalWords === 0 || maxScroll <= 0) return;
+      
+      // Calculate target scroll position to keep current word at ~2nd line from top
+      // We want to scroll so the current word is visible near the top
+      const percent = Math.max(0, (currentIdx / totalWords) * 100);
+      const targetY = -(maxScroll * percent / 100);
+      
+      // Only scroll if the position has changed significantly
+      if (Math.abs(targetY - currentYRef.current) > 10) {
+        currentYRef.current = targetY;
+        controls.start({
+          y: targetY,
+          transition: { duration: 0.3, ease: "easeOut" }
+        });
+        
+        // Update progress
+        const progress = Math.min(100, Math.abs(targetY / maxScroll) * 100);
+        onProgressUpdate?.(progress);
+      }
+    }, [aiAssistEnabled, externalWordStatuses, maxScroll, controls, onProgressUpdate]);
+
     const positionClasses = {
       top: "items-start pt-2",
       center: "items-center",
