@@ -26,13 +26,52 @@ export interface SmartTeleprompterRef {
 }
 
 const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProps>(
-  ({ text, speed, fontSize, position, isPlaying, mirrorMode, onProgressUpdate, wordStatuses, aiAssistEnabled }, ref) => {
+  ({ text, speed, fontSize, position, isPlaying, mirrorMode, onProgressUpdate, wordStatuses: externalWordStatuses, aiAssistEnabled }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLDivElement>(null);
     const controls = useAnimationControls();
     const [maxScroll, setMaxScroll] = useState(0);
     const animationRef = useRef<number | null>(null);
     const currentYRef = useRef(0);
+    const [internalWordStatuses, setInternalWordStatuses] = useState<WordStatus[]>([]);
+    const [currentWordIndex, setCurrentWordIndex] = useState(0);
+
+    // Initialize word statuses from text
+    useEffect(() => {
+      const words = text.split(/\s+/).filter(w => w.length > 0);
+      setInternalWordStatuses(
+        words.map((word, index) => ({
+          word,
+          index,
+          status: index === 0 ? "current" : "pending",
+        }))
+      );
+      setCurrentWordIndex(0);
+    }, [text]);
+
+    // Use external statuses if AI assist is enabled, otherwise use internal
+    const wordStatuses = aiAssistEnabled && externalWordStatuses?.length ? externalWordStatuses : internalWordStatuses;
+
+    // Auto-advance current word based on scroll position when not using AI assist
+    useEffect(() => {
+      if (aiAssistEnabled || !isPlaying) return;
+      
+      const totalWords = internalWordStatuses.length;
+      if (totalWords === 0 || maxScroll === 0) return;
+
+      const progress = Math.abs(currentYRef.current / maxScroll) * 100;
+      const newWordIndex = Math.min(Math.floor((progress / 100) * totalWords), totalWords - 1);
+      
+      if (newWordIndex !== currentWordIndex) {
+        setCurrentWordIndex(newWordIndex);
+        setInternalWordStatuses(prev => 
+          prev.map((ws, i) => ({
+            ...ws,
+            status: i < newWordIndex ? "correct" : i === newWordIndex ? "current" : "pending"
+          }))
+        );
+      }
+    }, [aiAssistEnabled, isPlaying, currentWordIndex, internalWordStatuses.length, maxScroll]);
 
     const positionClasses = {
       top: "items-start pt-2",
@@ -127,10 +166,10 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       };
     }, [isPlaying, speed, maxScroll, controls, onProgressUpdate, aiAssistEnabled]);
 
-    // Render text with word highlighting when AI assist is enabled
+    // Render text with word highlighting - ALWAYS show highlighting
     const renderText = () => {
-      if (!aiAssistEnabled || !wordStatuses || wordStatuses.length === 0) {
-        // Normal rendering
+      if (!wordStatuses || wordStatuses.length === 0) {
+        // Fallback normal rendering only if no words parsed
         return text.split("\n").map((line, index) => (
           <p key={index} className="mb-2 mx-auto">
             {line || "\u00A0"}
