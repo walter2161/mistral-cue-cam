@@ -97,8 +97,8 @@ const Index = () => {
             </div>
           )}
 
-          {/* Play Controls */}
-          <div className="flex justify-center gap-3 mt-3">
+          {/* Play Controls and Recording */}
+          <div className="flex flex-wrap justify-center items-center gap-3 mt-3">
             <Button
               onClick={togglePlay}
               size="lg"
@@ -126,6 +126,7 @@ const Index = () => {
               <RotateCcw className="w-5 h-5" />
               Reiniciar
             </Button>
+            <VideoRecorder stream={stream} />
           </div>
         </div>
 
@@ -136,7 +137,7 @@ const Index = () => {
             <ScriptEditor script={script} setScript={setScript} />
           </div>
 
-          {/* Right Side - Controls and Recording */}
+          {/* Right Side - Controls */}
           <div className="space-y-4">
             <Controls
               speed={speed}
@@ -148,11 +149,6 @@ const Index = () => {
               mirrorMode={mirrorMode}
               setMirrorMode={setMirrorMode}
             />
-
-            <div className="bg-card rounded-xl border p-4">
-              <h3 className="text-lg font-semibold mb-3">Gravação</h3>
-              <VideoRecorder stream={stream} />
-            </div>
           </div>
         </div>
       </div>

@@ -70,20 +70,21 @@ const VideoRecorder = ({ stream }: VideoRecorderProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 flex-wrap">
+    <>
+      <div className="flex items-center gap-2">
         {!isRecording ? (
           <Button
             onClick={startRecording}
             disabled={!stream}
             variant="destructive"
+            size="lg"
             className="gap-2"
           >
             <Circle className="w-4 h-4 fill-current" />
             Gravar
           </Button>
         ) : (
-          <Button onClick={stopRecording} variant="outline" className="gap-2">
+          <Button onClick={stopRecording} variant="outline" size="lg" className="gap-2 animate-pulse border-red-500 text-red-500">
             <Square className="w-4 h-4 fill-current" />
             Parar
           </Button>
@@ -91,13 +92,12 @@ const VideoRecorder = ({ stream }: VideoRecorderProps) => {
 
         {recordedUrl && (
           <>
-            <Button onClick={playRecording} variant="secondary" className="gap-2">
+            <Button onClick={playRecording} variant="secondary" size="lg" className="gap-2">
               <Play className="w-4 h-4" />
               Assistir
             </Button>
-            <Button onClick={downloadRecording} variant="outline" className="gap-2">
+            <Button onClick={downloadRecording} variant="outline" size="lg" className="gap-2">
               <Download className="w-4 h-4" />
-              Baixar
             </Button>
             <Button onClick={deleteRecording} variant="ghost" size="icon">
               <Trash2 className="w-4 h-4" />
@@ -105,13 +105,6 @@ const VideoRecorder = ({ stream }: VideoRecorderProps) => {
           </>
         )}
       </div>
-
-      {isRecording && (
-        <div className="flex items-center gap-2 text-destructive animate-pulse">
-          <Circle className="w-3 h-3 fill-current" />
-          <span className="text-sm font-medium">Gravando...</span>
-        </div>
-      )}
 
       {showPlayback && recordedUrl && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -135,7 +128,7 @@ const VideoRecorder = ({ stream }: VideoRecorderProps) => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 
