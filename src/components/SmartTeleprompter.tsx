@@ -163,8 +163,14 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       if (!textRef.current || !containerRef.current || maxScroll <= 0) return;
 
       if (isPlaying && !aiAssistEnabled) {
-        // Normal auto-scroll when AI assist is disabled
-        const pixelsPerSecond = speed * 15;
+        // Calculate line height based on font size (approximately 1.5x font size for leading-relaxed)
+        const lineHeight = fontSize * 1.5;
+        
+        // Speed is now "lines per second" - consistent regardless of content length
+        // speed 1 = 0.5 lines/sec, speed 5 = 2.5 lines/sec, speed 10 = 5 lines/sec
+        const linesPerSecond = speed * 0.5;
+        const pixelsPerSecond = linesPerSecond * lineHeight;
+        
         const remainingDistance = maxScroll + currentYRef.current;
         const duration = remainingDistance / pixelsPerSecond;
 
@@ -207,7 +213,7 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
           cancelAnimationFrame(animationRef.current);
         }
       };
-    }, [isPlaying, speed, maxScroll, controls, onProgressUpdate, aiAssistEnabled]);
+    }, [isPlaying, speed, maxScroll, controls, onProgressUpdate, aiAssistEnabled, fontSize]);
 
     // Render text with word highlighting - ALWAYS show highlighting
     const renderText = () => {
