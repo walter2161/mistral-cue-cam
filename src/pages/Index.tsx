@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Play, Pause, RotateCcw, SkipBack, BookOpen } from "lucide-react";
+import { Play, Pause, SkipBack, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import CameraPreview, { CameraPreviewRef } from "@/components/CameraPreview";
@@ -238,15 +238,6 @@ const Index = () => {
                   Iniciar
                 </>
               )}
-            </Button>
-            <Button
-              onClick={resetTeleprompter}
-              variant="outline"
-              size="lg"
-              className="gap-2"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Reiniciar
             </Button>
             <VideoRecorder stream={stream} />
           </div>
