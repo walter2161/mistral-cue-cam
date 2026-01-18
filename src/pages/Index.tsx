@@ -31,6 +31,21 @@ const Index = () => {
   const cameraRef = useRef<CameraPreviewRef>(null);
   const teleprompterRef = useRef<SmartTeleprompterRef>(null);
 
+  const handleStreamReady = (mediaStream: MediaStream) => {
+    setStream(mediaStream);
+  };
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const resetTeleprompter = () => {
+    setIsPlaying(false);
+    setResetKey(prev => prev + 1);
+    setScrollProgress(0);
+    setWordStatuses([]);
+  };
+
   // Detect chapters - lines starting with #, numbers like "1.", "Capítulo", or all caps lines
   const getChapterPositions = useCallback(() => {
     const lines = script.split('\n');
@@ -62,10 +77,7 @@ const Index = () => {
     const chapters = getChapterPositions();
     
     if (chapters.length === 0) {
-      // No chapters, just go to start
-      setResetKey(prev => prev + 1);
-      setScrollProgress(0);
-      setWordStatuses([]);
+      resetTeleprompter();
       return;
     }
 
@@ -87,22 +99,7 @@ const Index = () => {
       teleprompterRef.current.scrollToWord(targetChapter.wordIndex);
       setCurrentChapterIndex(targetChapterIdx);
     }
-  }, [getChapterPositions, wordStatuses]);
-
-  const handleStreamReady = (mediaStream: MediaStream) => {
-    setStream(mediaStream);
-  };
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const resetTeleprompter = () => {
-    setIsPlaying(false);
-    setResetKey(prev => prev + 1);
-    setScrollProgress(0);
-    setWordStatuses([]);
-  };
+  }, [getChapterPositions, wordStatuses, resetTeleprompter]);
 
   const handleScrollProgressChange = (value: number[]) => {
     setScrollProgress(value[0]);
