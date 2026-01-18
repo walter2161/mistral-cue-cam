@@ -119,6 +119,7 @@ const Teleprompter = forwardRef<TeleprompterRef, TeleprompterProps>(
             textShadow: "2px 2px 4px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.7)",
             fontWeight: 600,
             maxWidth: "100%",
+            paddingTop: "20px",
           }}
         >
           {text.split("\n").map((line, index) => (
@@ -126,6 +127,8 @@ const Teleprompter = forwardRef<TeleprompterRef, TeleprompterProps>(
               {line || "\u00A0"}
             </p>
           ))}
+          {/* Extra space at bottom so last line can scroll to top */}
+          <div style={{ height: "80vh" }} />
         </motion.div>
       </div>
     );
