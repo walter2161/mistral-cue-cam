@@ -58,44 +58,46 @@ const Index = () => {
 
         {/* Camera Preview - Centered at Top */}
         <div className="max-w-4xl mx-auto mb-4">
-          <div className="relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-cyan-500/30">
-            <CameraPreview ref={cameraRef} onStreamReady={handleStreamReady} />
-            
-            {/* Translucent overlay filter */}
-            <div className="absolute inset-0 bg-black/20 pointer-events-none" />
-            
-            {script && (
-              <Teleprompter
-                ref={teleprompterRef}
-                key={resetKey}
-                text={script}
-                speed={speed}
-                fontSize={fontSize}
-                position={position}
-                isPlaying={isPlaying}
-                mirrorMode={mirrorMode}
-                onProgressUpdate={handleProgressUpdate}
-              />
-            )}
-          </div>
+          <div className="flex gap-3">
+            {/* Camera Container */}
+            <div className="flex-1 relative aspect-video bg-black rounded-xl overflow-hidden border-2 border-cyan-500/30">
+              <CameraPreview ref={cameraRef} onStreamReady={handleStreamReady} />
+              
+              {/* Translucent overlay filter */}
+              <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+              
+              {script && (
+                <Teleprompter
+                  ref={teleprompterRef}
+                  key={resetKey}
+                  text={script}
+                  speed={speed}
+                  fontSize={fontSize}
+                  position={position}
+                  isPlaying={isPlaying}
+                  mirrorMode={mirrorMode}
+                  onProgressUpdate={handleProgressUpdate}
+                />
+              )}
+            </div>
 
-          {/* Scroll Progress Bar */}
-          {script && (
-            <div className="mt-3 px-2">
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Posição do texto</span>
+            {/* Vertical Scroll Progress Bar - Right Side */}
+            {script && (
+              <div className="flex flex-col items-center gap-2 py-2">
+                <span className="text-xs text-muted-foreground">{Math.round(scrollProgress)}%</span>
                 <Slider
                   value={[scrollProgress]}
                   onValueChange={handleScrollProgressChange}
                   min={0}
                   max={100}
                   step={1}
-                  className="flex-1"
+                  orientation="vertical"
+                  className="h-full min-h-[200px]"
                 />
-                <span className="text-xs text-muted-foreground w-10 text-right">{Math.round(scrollProgress)}%</span>
+                <span className="text-xs text-muted-foreground rotate-0">Posição</span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Play Controls and Recording */}
           <div className="flex flex-wrap justify-center items-center gap-3 mt-3">
