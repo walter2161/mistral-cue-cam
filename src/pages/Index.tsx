@@ -28,6 +28,7 @@ const Index = () => {
   const [aiAssistEnabled, setAiAssistEnabled] = useState(false);
   const [wordStatuses, setWordStatuses] = useState<WordStatus[]>([]);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+  const [startFromWordIndex, setStartFromWordIndex] = useState<number | undefined>(undefined);
   const cameraRef = useRef<CameraPreviewRef>(null);
   const teleprompterRef = useRef<SmartTeleprompterRef>(null);
 
@@ -129,8 +130,8 @@ const Index = () => {
     setIsPlaying(false);
     // Scroll to clicked word
     teleprompterRef.current?.scrollToWord(wordIndex);
-    // Clear word statuses so AI can restart from this point
-    setWordStatuses([]);
+    // Set the start position for AI assistant
+    setStartFromWordIndex(wordIndex);
   }, []);
 
   const handleAIControlCommand = useCallback((command: "pause" | "play" | "back" | "forward") => {
@@ -282,6 +283,7 @@ const Index = () => {
                 onWordStatusChange={handleWordStatusChange}
                 onControlCommand={handleAIControlCommand}
                 isPlaying={isPlaying}
+                startFromWordIndex={startFromWordIndex}
               />
             </div>
           </div>
