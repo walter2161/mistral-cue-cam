@@ -11,7 +11,8 @@ const Index = () => {
   const [script, setScript] = useState("");
   const [speed, setSpeed] = useState(3);
   const [fontSize, setFontSize] = useState(32);
-  const [position, setPosition] = useState<"top" | "center" | "bottom">("center");
+  const [position, setPosition] = useState<"top" | "center" | "bottom">("top");
+  const [resetKey, setResetKey] = useState(0);
   const [mirrorMode, setMirrorMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -27,6 +28,7 @@ const Index = () => {
 
   const resetTeleprompter = () => {
     setIsPlaying(false);
+    setResetKey(prev => prev + 1);
   };
 
   return (
@@ -96,6 +98,7 @@ const Index = () => {
               <CameraPreview ref={cameraRef} onStreamReady={handleStreamReady} />
               {script && (
                 <Teleprompter
+                  key={resetKey}
                   text={script}
                   speed={speed}
                   fontSize={fontSize}
