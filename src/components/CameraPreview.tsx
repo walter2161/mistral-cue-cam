@@ -12,6 +12,8 @@ export interface CameraPreviewRef {
 
 const CameraPreview = forwardRef<CameraPreviewRef, CameraPreviewProps>(({ onStreamReady }, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasAutoStartedRef = useRef(false);
+  const isStartingRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,22 +22,43 @@ const CameraPreview = forwardRef<CameraPreviewRef, CameraPreviewProps>(({ onStre
     getStream: () => stream,
   }));
 
+  const attachStreamToVideo = (mediaStream: MediaStream) => {
+    if (!videoRef.current) return;
+    videoRef.current.srcObject = mediaStream;
+    // Alguns navegadores precisam de um play explícito
+    void videoRef.current.play?.().catch(() => {});
+  };
+
   const startCamera = async () => {
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
+
     try {
       setError(null);
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: true,
-      });
+
+      // Tenta câmera + microfone; se falhar (ex.: permissão do mic), cai para vídeo apenas
+      let mediaStream: MediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: true,
+        });
+      } catch {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+      }
+
       setStream(mediaStream);
       setCameraEnabled(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
+      attachStreamToVideo(mediaStream);
       onStreamReady?.(mediaStream);
     } catch (err) {
-      setError("Não foi possível acessar a câmera. Verifique as permissões.");
+      setError("Não foi possível acessar a câmera. Verifique as permissões do navegador.");
       console.error("Camera error:", err);
+    } finally {
+      isStartingRef.current = false;
     }
   };
 
@@ -44,8 +67,17 @@ const CameraPreview = forwardRef<CameraPreviewRef, CameraPreviewProps>(({ onStre
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
       setCameraEnabled(false);
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
     }
   };
+
+  useEffect(() => {
+    if (hasAutoStartedRef.current) return;
+    hasAutoStartedRef.current = true;
+    void startCamera();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -63,6 +95,11 @@ const CameraPreview = forwardRef<CameraPreviewRef, CameraPreviewProps>(({ onStre
           autoPlay
           playsInline
           muted
+          onLoadedMetadata={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            void v.play().catch(() => {});
+          }}
           className="w-full h-full object-cover scale-x-[-1]"
         />
       ) : (
