@@ -37,6 +37,9 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
     const [internalWordStatuses, setInternalWordStatuses] = useState<WordStatus[]>([]);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
+    // Track the highest word index reached to prevent going backwards
+    const highestWordIndexRef = useRef(0);
+
     // Initialize word statuses from text
     useEffect(() => {
       const words = text.split(/\s+/).filter(w => w.length > 0);
@@ -48,6 +51,7 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
         }))
       );
       setCurrentWordIndex(0);
+      highestWordIndexRef.current = 0;
     }, [text]);
 
     // Use external statuses if AI assist is enabled, otherwise use internal
@@ -74,7 +78,7 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       }
     }, [aiAssistEnabled, isPlaying, currentWordIndex, internalWordStatuses.length, maxScroll]);
 
-    // Auto-scroll to current word when AI assist is enabled
+    // Auto-scroll to current word when AI assist is enabled (only forward, never backward)
     useEffect(() => {
       if (!aiAssistEnabled || !externalWordStatuses?.length) return;
       
@@ -82,16 +86,20 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       const currentIdx = externalWordStatuses.findIndex(ws => ws.status === "current");
       if (currentIdx === -1) return;
       
+      // Only scroll forward, never backward
+      if (currentIdx <= highestWordIndexRef.current) return;
+      
+      highestWordIndexRef.current = currentIdx;
+      
       const totalWords = externalWordStatuses.length;
       if (totalWords === 0 || maxScroll <= 0) return;
       
       // Calculate target scroll position to keep current word at ~2nd line from top
-      // We want to scroll so the current word is visible near the top
       const percent = Math.max(0, (currentIdx / totalWords) * 100);
       const targetY = -(maxScroll * percent / 100);
       
-      // Only scroll if the position has changed significantly
-      if (Math.abs(targetY - currentYRef.current) > 10) {
+      // Only scroll if moving forward (targetY is more negative)
+      if (targetY < currentYRef.current) {
         currentYRef.current = targetY;
         controls.start({
           y: targetY,
@@ -120,10 +128,14 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
       },
       reset: () => {
         currentYRef.current = 0;
+        highestWordIndexRef.current = 0;
         controls.set({ y: 0 });
         onProgressUpdate?.(0);
       },
       scrollToWord: (wordIndex: number) => {
+        // Reset the highest word index when user manually selects a word
+        highestWordIndexRef.current = wordIndex;
+        
         // Calculate approximate scroll position based on word index
         const totalWords = text.split(/\s+/).length;
         if (totalWords > 0 && maxScroll > 0) {
