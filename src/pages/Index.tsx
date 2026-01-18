@@ -1,12 +1,19 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import CameraPreview, { CameraPreviewRef } from "@/components/CameraPreview";
-import Teleprompter, { TeleprompterRef } from "@/components/Teleprompter";
+import SmartTeleprompter, { SmartTeleprompterRef } from "@/components/SmartTeleprompter";
 import Controls from "@/components/Controls";
 import ScriptEditor from "@/components/ScriptEditor";
 import VideoRecorder from "@/components/VideoRecorder";
+import AIReadingAssistant from "@/components/AIReadingAssistant";
+
+interface WordStatus {
+  word: string;
+  index: number;
+  status: "pending" | "current" | "correct" | "incorrect";
+}
 
 const Index = () => {
   const [script, setScript] = useState("");
@@ -18,8 +25,10 @@ const Index = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [aiAssistEnabled, setAiAssistEnabled] = useState(false);
+  const [wordStatuses, setWordStatuses] = useState<WordStatus[]>([]);
   const cameraRef = useRef<CameraPreviewRef>(null);
-  const teleprompterRef = useRef<TeleprompterRef>(null);
+  const teleprompterRef = useRef<SmartTeleprompterRef>(null);
 
   const handleStreamReady = (mediaStream: MediaStream) => {
     setStream(mediaStream);
@@ -33,6 +42,7 @@ const Index = () => {
     setIsPlaying(false);
     setResetKey(prev => prev + 1);
     setScrollProgress(0);
+    setWordStatuses([]);
   };
 
   const handleScrollProgressChange = (value: number[]) => {
@@ -43,6 +53,35 @@ const Index = () => {
   const handleProgressUpdate = (progress: number) => {
     setScrollProgress(progress);
   };
+
+  const handleWordStatusChange = useCallback((statuses: WordStatus[]) => {
+    setWordStatuses(statuses);
+    // Auto-scroll to current word when AI assist is enabled
+    const currentWord = statuses.find(s => s.status === "current");
+    if (currentWord && aiAssistEnabled) {
+      teleprompterRef.current?.scrollToWord(currentWord.index);
+    }
+  }, [aiAssistEnabled]);
+
+  const handleAIControlCommand = useCallback((command: "pause" | "play" | "back" | "forward") => {
+    switch (command) {
+      case "pause":
+        setIsPlaying(false);
+        break;
+      case "play":
+        setIsPlaying(true);
+        break;
+      case "back":
+        // Scroll back a bit
+        setScrollProgress(prev => Math.max(0, prev - 10));
+        teleprompterRef.current?.setScrollPosition(Math.max(0, scrollProgress - 10));
+        break;
+      case "forward":
+        setScrollProgress(prev => Math.min(100, prev + 5));
+        teleprompterRef.current?.setScrollPosition(Math.min(100, scrollProgress + 5));
+        break;
+    }
+  }, [scrollProgress]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -65,7 +104,7 @@ const Index = () => {
             <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
             {script && (
-              <Teleprompter
+              <SmartTeleprompter
                 ref={teleprompterRef}
                 key={resetKey}
                 text={script}
@@ -75,6 +114,8 @@ const Index = () => {
                 isPlaying={isPlaying}
                 mirrorMode={mirrorMode}
                 onProgressUpdate={handleProgressUpdate}
+                wordStatuses={wordStatuses}
+                aiAssistEnabled={aiAssistEnabled}
               />
             )}
 
@@ -148,6 +189,18 @@ const Index = () => {
               mirrorMode={mirrorMode}
               setMirrorMode={setMirrorMode}
             />
+            
+            {/* AI Reading Assistant */}
+            <div className="bg-card rounded-xl border p-4">
+              <AIReadingAssistant
+                script={script}
+                isEnabled={aiAssistEnabled}
+                setIsEnabled={setAiAssistEnabled}
+                onWordStatusChange={handleWordStatusChange}
+                onControlCommand={handleAIControlCommand}
+                isPlaying={isPlaying}
+              />
+            </div>
           </div>
         </div>
       </div>
