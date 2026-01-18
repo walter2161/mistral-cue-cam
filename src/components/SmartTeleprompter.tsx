@@ -156,13 +156,13 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
                 const status = wordStatuses[wordIndex]?.status || "pending";
                 wordIndex++;
                 
-                let className = "transition-all duration-200 ";
+                let className = "transition-all duration-200 inline-block ";
                 switch (status) {
                   case "current":
-                    className += "bg-cyan-500/40 text-cyan-100 px-1 rounded scale-110 inline-block";
+                    className += "bg-white text-black px-2 py-0.5 rounded-md font-bold scale-110 shadow-lg";
                     break;
                   case "correct":
-                    className += "text-green-300";
+                    className += "text-green-400 font-semibold";
                     break;
                   case "incorrect":
                     className += "bg-red-500/50 text-red-200 px-1 rounded animate-pulse";
