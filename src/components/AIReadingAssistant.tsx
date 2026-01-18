@@ -22,6 +22,7 @@ interface AIReadingAssistantProps {
   onWordStatusChange: (words: WordStatus[]) => void;
   onControlCommand: (command: "pause" | "play" | "back" | "forward") => void;
   isPlaying: boolean;
+  startFromWordIndex?: number;
 }
 
 // Normalize text for comparison (remove accents, lowercase, etc.)
@@ -114,6 +115,7 @@ const AIReadingAssistant = ({
   onWordStatusChange,
   onControlCommand,
   isPlaying,
+  startFromWordIndex,
 }: AIReadingAssistantProps) => {
   const { toast } = useToast();
   const {
@@ -151,6 +153,22 @@ const AIReadingAssistant = ({
     lastMatchedWordsRef.current = [];
     setMatchHistory([]);
   }, [script]);
+
+  // Sync with external start position (when user clicks on a word)
+  useEffect(() => {
+    if (startFromWordIndex !== undefined && startFromWordIndex >= 0 && scriptWords.length > 0) {
+      setCurrentWordIndex(startFromWordIndex);
+      setWordStatuses(prev => 
+        prev.map((ws, i) => ({
+          ...ws,
+          status: i < startFromWordIndex ? "correct" : i === startFromWordIndex ? "current" : "pending"
+        }))
+      );
+      lastMatchedWordsRef.current = [];
+      setMatchHistory([]);
+      resetTranscript();
+    }
+  }, [startFromWordIndex, scriptWords.length, resetTranscript]);
 
   // Find best matching word in look-ahead/behind window
   const findBestMatch = useCallback((spokenWord: string, fromIndex: number) => {
