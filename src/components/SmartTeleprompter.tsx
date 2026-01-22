@@ -167,8 +167,8 @@ const SmartTeleprompter = forwardRef<SmartTeleprompterRef, SmartTeleprompterProp
         const lineHeight = fontSize * 1.5;
         
         // Speed is now "lines per second" - consistent regardless of content length
-        // speed 1 = 0.25 lines/sec, speed 5 = 1.25 lines/sec, speed 10 = 2.5 lines/sec
-        const linesPerSecond = speed * 0.25;
+        // speed 1 = 0.1 lines/sec, speed 5 = 0.5 lines/sec, speed 10 = 1 line/sec
+        const linesPerSecond = speed * 0.1;
         const pixelsPerSecond = linesPerSecond * lineHeight;
         
         const remainingDistance = maxScroll + currentYRef.current;
